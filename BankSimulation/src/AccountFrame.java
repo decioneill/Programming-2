@@ -24,6 +24,7 @@ public class AccountFrame extends javax.swing.JFrame
         activeAccount.balance = initDepo;
 
         initComponents();
+        stopBtn.setEnabled(false);
 
         if (isSavingsAccType == true) {
             setTitle("Savings Account");
@@ -40,6 +41,7 @@ public class AccountFrame extends javax.swing.JFrame
             @Override
             public void actionPerformed(ActionEvent e) 
             {
+                toggleButtons();
                 runSimulation();
             }
         }
@@ -49,6 +51,10 @@ public class AccountFrame extends javax.swing.JFrame
             @Override
             public void actionPerformed(ActionEvent e) 
             {
+                startBtn.setEnabled(true);
+                stopBtn.setEnabled(false);
+                exitBtn.setEnabled(true);
+                buttonGraph.setEnabled(true);
                 stopSimulation();
                 JOptionPane.showMessageDialog(null, "Simulation has stopped", "Simulation", JOptionPane.PLAIN_MESSAGE);
             }
@@ -400,6 +406,14 @@ public class AccountFrame extends javax.swing.JFrame
         double range = (max - min) + 1;
         range = Math.random() * range + min;
         return range;
+    }
+    
+    private void toggleButtons() {
+        
+        startBtn.setEnabled(isLooping);
+        stopBtn.setEnabled(!isLooping);
+        exitBtn.setEnabled(isLooping);
+        buttonGraph.setEnabled(isLooping);
     }
     
     protected void windowClosed() {
