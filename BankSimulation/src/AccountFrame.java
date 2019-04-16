@@ -1,20 +1,28 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 
+/**
+ * A JFrame subclass that provides a GUI to display account information, start and stop a simulation
+ * Every 5 seconds simulates 1 month duration, at the start of each month 1 random transaction is made.
+ * 
+ * @author Maciej Rozmiarek
+ * @author Declan O'Neill
+ * @author John Murphy
+ */
 public class AccountFrame extends javax.swing.JFrame 
 {
-    boolean isSavingsAccType = false;
-    public Account activeAccount;
-    String initText = new String();
-    boolean isLooping = false;
-
+    boolean isSavingsAccType = false;       //Used to determine which account class is used
+    public Account activeAccount;       // abstract class to be determined in constructor
+    boolean isLooping = false;      // Used in both start and stop method.
     
-     //Creates new frame AccountFrame
-    public AccountFrame(double initDepo, boolean accType) 
-    {       
+     /**
+      * Creates new frame AccountFrame
+      * Constructor to create a frame that can be used to run simulation.
+      * @param initDepo Initial balance amount
+      * @param accType Uses a boolean value to determine which Account subclass. true for Savings Account, false for Current Account
+      */
+    public AccountFrame(double initDepo, boolean accType) {       
         isSavingsAccType = accType;        
         if (isSavingsAccType == true) {
             activeAccount = new SavingsAccount(initDepo);
@@ -23,43 +31,37 @@ public class AccountFrame extends javax.swing.JFrame
         }        
         activeAccount.balance = initDepo;
 
-        initComponents();
-        stopBtn.setEnabled(false);
+        initComponents();       //adds in components that are added through NetBeans Design
+        stopBtn.setEnabled(false);      //initially disabled. Enables once start button has been pressed
 
-        if (isSavingsAccType == true) {
+        if (isSavingsAccType == true) {     //Sets frameTitle dependent on account subclass.
             setTitle("Savings Account");
         } else {
             setTitle("Current Account");
         }
-        transactionsJTextArea.append((String.format("Account opened, £%.2f added", activeAccount.balance)));       
+        transactionsJTextArea.append((String.format("Account opened, £%,.2f added", activeAccount.balance)));       // Initial balance text added to transactions text window.
         
-        //onscreen window size
-        this.setPreferredSize(new Dimension(900, 470));
-
         //add action listeners
         startBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) 
             {
+                //disables All GUI Buttons other than "stop" and runs the simulation.
                 toggleButtons();
                 runSimulation();
             }
-        }
-        );
+        } );
 
         stopBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) 
             {
-                startBtn.setEnabled(true);
-                stopBtn.setEnabled(false);
-                exitBtn.setEnabled(true);
-                buttonGraph.setEnabled(true);
+                //Enables all GUI buttons other than stop. stops the simulation running with dialog.
+                toggleButtons();
                 stopSimulation();
                 JOptionPane.showMessageDialog(null, "Simulation has stopped", "Simulation", JOptionPane.PLAIN_MESSAGE);
             }
-        }
-        );
+        } );
         
         exitBtn.addActionListener(new ActionListener() {
             @Override
@@ -67,15 +69,12 @@ public class AccountFrame extends javax.swing.JFrame
             {
                 AccountFrame.this.windowClosed();
             }
-        }
-        );
+        } );
         
-        
-        
+        /**Opens new JFrame which displays graph based on the activeAccounts accHistory (transactions history).*/
         buttonGraph.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                //enter method to be performed here
+            public void actionPerformed(ActionEvent e) {                
                 JFrame graphFrame = new JFrame("Line Graph");
                 graphFrame.setLayout(new BorderLayout());
                 
@@ -85,13 +84,14 @@ public class AccountFrame extends javax.swing.JFrame
                 
                 JLabel leftAxis = new JLabel("Amount (£)");
                 graphFrame.add(leftAxis, BorderLayout.WEST);
+                leftAxis.setHorizontalAlignment(JLabel.RIGHT);
                 
                 JLabel xAxis = new JLabel("Month");
                 graphFrame.add(xAxis, BorderLayout.SOUTH);
                 xAxis.setHorizontalAlignment(JLabel.CENTER);
                 
                 graphFrame.getContentPane().add(new GraphPanel(activeAccount.accHistory));
-                graphFrame.setSize(600, 400);
+                graphFrame.setSize(800, 600);
                 graphFrame.setLocationRelativeTo(buttonGraph);
                 Dimension minSize = new Dimension(250, 250);  //Prevents program crashing when reduced to too small a size
                 graphFrame.setMinimumSize(minSize);
@@ -99,8 +99,17 @@ public class AccountFrame extends javax.swing.JFrame
                 graphFrame.setVisible(true);
                 graphFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
             }
-        }
-        );
+        } );
+        
+        /**Opens start screen "UIFrame" to make new account*/
+        newAccBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                UIFrame startUpFrame = new UIFrame();
+                startUpFrame.setVisible(true);
+                dispose();
+            }
+        });
     }
     
     /**
@@ -119,6 +128,9 @@ public class AccountFrame extends javax.swing.JFrame
         startBtn = new javax.swing.JButton();
         stopBtn = new javax.swing.JButton();
         buttonGraph = new javax.swing.JButton();
+        monthProgress = new javax.swing.JProgressBar();
+        progressText = new javax.swing.JLabel();
+        newAccBtn = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         transactionsJTextArea = new javax.swing.JTextArea();
@@ -168,6 +180,10 @@ public class AccountFrame extends javax.swing.JFrame
             }
         });
 
+        progressText.setText("0 Sec");
+
+        newAccBtn.setText("New Account");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -176,10 +192,15 @@ public class AccountFrame extends javax.swing.JFrame
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(startBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(buttonGraph, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(buttonGraph, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
                     .addComponent(stopBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(exitBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(simulationLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(simulationLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(monthProgress, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(progressText))
+                    .addComponent(newAccBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -191,8 +212,14 @@ public class AccountFrame extends javax.swing.JFrame
                 .addComponent(startBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(stopBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(monthProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(progressText))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 138, Short.MAX_VALUE)
                 .addComponent(buttonGraph)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(newAccBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(exitBtn)
                 .addContainerGap())
@@ -213,11 +240,18 @@ public class AccountFrame extends javax.swing.JFrame
         balanceLabel.setText("Balance: ");
 
         poundLabel1.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
-        poundLabel1.setText(String.format("£%.2f",activeAccount.balance));
+        poundLabel1.setText("£0.00");
+        poundLabel1.setText(String.format("£%,.2f",activeAccount.balance));
 
         maxLabel.setText("Maximum Balance:");
 
+        maxAmountLabel.setText("£0.00");
+        maxAmountLabel.setText(String.format("£%,.2f", activeAccount.maxBalance()));
+
         minLabel.setText("Minimum Balance:");
+
+        minAmountLabel.setText("£0.00");
+        minAmountLabel.setText(String.format("£%,.2f", activeAccount.minBalance()));
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -229,16 +263,18 @@ public class AccountFrame extends javax.swing.JFrame
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(balanceLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(poundLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(poundLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(maxLabel)
-                            .addComponent(minLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(maxAmountLabel)
-                            .addComponent(minAmountLabel))
-                        .addGap(0, 373, Short.MAX_VALUE))
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(minLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(minAmountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 73, Short.MAX_VALUE))
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(maxLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(maxAmountLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(219, 219, 219))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(transactionsLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -260,7 +296,7 @@ public class AccountFrame extends javax.swing.JFrame
                     .addComponent(minAmountLabel))
                 .addGap(9, 9, 9)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(transactionsLabel)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -276,15 +312,15 @@ public class AccountFrame extends javax.swing.JFrame
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(14, 14, 14))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -299,25 +335,24 @@ public class AccountFrame extends javax.swing.JFrame
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        setSize(new java.awt.Dimension(816, 277));
+        setSize(new java.awt.Dimension(802, 397));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void exitBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitBtnActionPerformed
-        // TODO add your handling code here:
-        
+
     }//GEN-LAST:event_exitBtnActionPerformed
 
     private void startBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startBtnActionPerformed
-        //start simulation
+
     }//GEN-LAST:event_startBtnActionPerformed
 
     private void stopBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopBtnActionPerformed
-        // stop simulation
+
     }//GEN-LAST:event_stopBtnActionPerformed
 
     private void buttonGraphActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonGraphActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_buttonGraphActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -332,7 +367,10 @@ public class AccountFrame extends javax.swing.JFrame
     private javax.swing.JLabel maxLabel;
     private javax.swing.JLabel minAmountLabel;
     private javax.swing.JLabel minLabel;
+    private javax.swing.JProgressBar monthProgress;
+    private javax.swing.JButton newAccBtn;
     private javax.swing.JLabel poundLabel1;
+    private javax.swing.JLabel progressText;
     private javax.swing.JLabel simulationLabel;
     private javax.swing.JButton startBtn;
     private javax.swing.JButton stopBtn;
@@ -340,85 +378,120 @@ public class AccountFrame extends javax.swing.JFrame
     private javax.swing.JLabel transactionsLabel;
     // End of variables declaration//GEN-END:variables
 
-//methods
     
+//Methods    
+    /**
+     * credits the balance by the double amount provided.
+     * If the Account is a SavingsAccount type it will credit the interest amount first.
+     * Transaction is recorded in the Transaction text area and GUI elements are updated with new figures.
+     * 
+     * @param amount Amount to be added to balance.
+     */
     private void creditTransaction(double amount) {
         if (activeAccount instanceof SavingsAccount) {
             activeAccount.creditInterest();
-            transactionsJTextArea.append(String.format("\nInterest added, New balance: £%.2f", activeAccount.getBalance()));
+            transactionsJTextArea.append(String.format("\nInterest added, New balance: £%,.2f", activeAccount.getBalance()));
             updateTransactionsText();
         }
         transactionsJTextArea.append(activeAccount.creditTransaction(amount));
         updateTransactionsText();
-
-
     }    
     
+    /**
+     * debits the balance by the double amount provided.
+     * If the account is a SavingsAccount type it will credit the interest amount first.
+     * Transaction is recorded in the Transaction text area and GUI elements are updated with new figures.
+     * 
+     * @param amount Amount to be subtracted from balance.
+     */
     private void debitTransaction(double amount) {
         if (activeAccount instanceof SavingsAccount) {
             activeAccount.creditInterest();
-            transactionsJTextArea.append(String.format("\nInterest added, New balance: £%.2f", activeAccount.getBalance()));
+            transactionsJTextArea.append(String.format("\nInterest added, New balance: £%,.2f", activeAccount.getBalance()));
         }
         transactionsJTextArea.append(activeAccount.debitTransaction(amount));
         updateTransactionsText();
     }
     
-    private void runSimulation() 
-    {
+    /**
+     * Loops a runSim thread that randomly produces transactions.
+     * Separate thread required in order to allow user to push buttons on the GUI. Otherwise program locks up in infinite loop.
+     */
+    private void runSimulation() {
         isLooping = true;
-        Thread runSim = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (isLooping == true) {
-                    double randTransact = Math.random();
-                    double randAmount = randomWithRange(100,2000);
-                    
-                    if (randTransact >= 0.50) {
-                        creditTransaction(randAmount);
-                    } else {
-                        debitTransaction(randAmount);
+
+        Thread runSim;
+        runSim = new Thread(() -> {
+            while (isLooping == true) {
+                double randTransact = Math.random();
+                double randAmount = randomWithRange(100,2000);
+                
+                if (randTransact >= 0.50) {
+                    creditTransaction(randAmount);
+                } else {
+                    debitTransaction(randAmount);
+                }
+                transactionsJTextArea.repaint();
+                try {
+                    for (int i =0 ; i <100 && isLooping == true ; i++) {
+                        monthProgress.setValue(i);
+                        progressText.setText(String.valueOf(i/20) + " Sec");
+                        Thread.sleep(49);
                     }
-                    transactionsJTextArea.repaint();
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ex) { 
-                    }
+                } catch (InterruptedException ex) {
                 }
             }
         });
         runSim.start();
     }
     
-    
-    private void stopSimulation()
-    {
+    /**
+     * Stops runSim looping and resets progress values.
+     */
+    private void stopSimulation() {
         isLooping = false;
+        monthProgress.setValue(0);
+        progressText.setText("0 Sec");
     }
         
+    /**
+     * Updates text values the TransactionsJTextArea, and Balance labels on the GUI.
+     */
     public void updateTransactionsText() {
-        transactionsJTextArea.append(String.format(", New balance: £%.2f",activeAccount.getBalance()));
-        poundLabel1.setText(String.format("£%.2f", activeAccount.getBalance()));
-        maxAmountLabel.setText(String.format("£%.2f",activeAccount.maxBalance()));
-        minAmountLabel.setText(String.format("£%.2f",activeAccount.minBalance()));
+        transactionsJTextArea.append(String.format(", New balance: £%,.2f",activeAccount.getBalance()));
+        poundLabel1.setText(String.format("£%,.2f", activeAccount.getBalance()));
+        maxAmountLabel.setText(String.format("£%,.2f",activeAccount.maxBalance()));
+        minAmountLabel.setText(String.format("£%,.2f",activeAccount.minBalance()));
     }
     
+    /**
+     * Determines a random Double figure between the range given
+     * 
+     * @param min Minimum value of range
+     * @param max Maximum value of range
+     * @return  Random value between ranges
+     */
     private double randomWithRange(int min, int max) {
         double range = (max - min) + 1;
         range = Math.random() * range + min;
         return range;
     }
     
-    private void toggleButtons() {
-        
+    /**
+     * Switches the buttons on the GUI on/off depending on if it is running Simulation.
+     */
+    private void toggleButtons() {        
         startBtn.setEnabled(isLooping);
         stopBtn.setEnabled(!isLooping);
         exitBtn.setEnabled(isLooping);
         buttonGraph.setEnabled(isLooping);
     }
     
+    /**
+     * Ends the Program.
+     */
     protected void windowClosed() {
-        // Exit application.
         System.exit(0);
     }
-
-}
+    //ends Methods
+}//end AccountFrame

@@ -1,15 +1,26 @@
-
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * This class is used to handle the List objects, One to record the transactions made, and another to record the balances as they change.
+ *
+ * @author Declan O'Neill
+ */
 public class TransactionsHistory 
 {
-    private List<Transaction> transactions = new ArrayList<>();
-    private List<Double> balances = new ArrayList<>();
+    private final List<Transaction> transactions = new ArrayList<>();
+    private final List<Double> balances = new ArrayList<>();
     private int numTransact = 0;
     private int month = 1;
     private int year = 2019;
+    
+    /**
+     * Adds a transaction to the list transactions, increments the month by 1 per transaction (up to 12) and year every 12 transactions added.
+     * Adds new balance to the balances list.
+     * 
+     * @param balance Current balance in active account.
+     * @param amount The amount of the transaction
+     */
     public void addTransaction(double balance, double amount) {
         Transaction t1 = new Transaction(amount, month, year);
         transactions.add(t1);
@@ -23,12 +34,20 @@ public class TransactionsHistory
         numTransact++;
     }
     
+    
+    /**
+     * Adds the balance to the balance list.
+     * 
+     * @param amount The current balance,
+     */
     private void addBalance(double amount) {
         balances.add(amount);
     }
     
+    
+ //GETTERS
     public double getAmount(int i) {
-        return transactions.get(i).transaction;
+        return transactions.get(i).getTransactionAmount();
     }
     
     public double getBalanceAmount(int i) {
@@ -67,6 +86,7 @@ public class TransactionsHistory
         }
         return monthText;
     }
+    
     public String getDate(int i) {
         String dateText = getMonth(transactions.get(i).getMonth()) + "/" + transactions.get(i).getYear();
         return dateText;
@@ -79,4 +99,5 @@ public class TransactionsHistory
     private String getYear() {
         return String.valueOf(year);        
     }
+//End GETTERS
 }

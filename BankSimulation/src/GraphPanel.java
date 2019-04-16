@@ -6,7 +6,12 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
-
+/**
+ * Creates a graph using active accounts details.
+ * Resizes to fit the JPanel window size.
+ * 
+ * @author Declan O'Neill
+ */
 public class GraphPanel extends JPanel {
     
     double tMax = 0;  // Max transaction value on graph
@@ -43,16 +48,17 @@ public class GraphPanel extends JPanel {
 
         
         //Border values
+        String tMaxText = String.format("£%,.2f",tMax);
         int padding = 15;   //general spacing to increase whitespace
         int eastMargin = -10 - padding;  
-        int westMargin = 5 + fontManager.stringWidth(String.valueOf(tMax)) + padding;  //provides adequate spacing to display amounts
+        int westMargin = 0 + fontManager.stringWidth(tMaxText);  //provides adequate spacing to display amounts
         int northMargin = 0 + padding; 
         int southMargin = 0 - padding-fontManager.getHeight();  //margin widths for panel
         //End Borders
  
         //Graph Sizes
         // Y Coordinates
-        int yOrigin = 0 + northMargin;   // Y coordinate of graph
+        int yOrigin = 0 + northMargin;   // Top Y coordinate of graph
         int yEnd = this.getHeight()+southMargin;     //bottom Y coordinate of graph
         double tRange = tMax - tMin;        //range of transactions
         int gRange = yEnd-yOrigin;      //display height of graph
@@ -71,7 +77,7 @@ public class GraphPanel extends JPanel {
         int numPlotPoints = numtransactions;  //number of transactions to include on graph
         int xOrigin = 0 + westMargin;       //Left x coordinate of graph
         int xEnd = this.getWidth() + eastMargin;    //right x coordinate of graph
-        int xWidth = (xEnd - xOrigin)/(numPlotPoints);    //width between transactions on graph
+        float xWidth =(float)((xEnd - xOrigin)/(numPlotPoints));    //width between transactions on graph
         //End X Coordinates
         //End Graph Sizes
 // End Graph Measurements
@@ -85,14 +91,14 @@ public class GraphPanel extends JPanel {
         g.setColor(Color.BLACK);
         for (int i=0; i<numPlotPoints; i++)   {        //Vertical Inner Lines   
             g.setColor(Color.LIGHT_GRAY);
-            g.drawLine((i * xWidth)+xOrigin,    
+            g.drawLine(Math.round(i * xWidth)+xOrigin,    
                     yOrigin,                                   
-                    (i * xWidth)+xOrigin,               
+                    Math.round(i * xWidth)+xOrigin,               
                     yEnd);      //background lines
             g.setColor(Color.BLACK);
-            g.drawLine((i * xWidth)+xOrigin,    
+            g.drawLine(Math.round(i * xWidth)+xOrigin,    
                     yEnd-5,                                   
-                    (i * xWidth)+xOrigin,               
+                    Math.round(i * xWidth)+xOrigin,               
                     yEnd+5);        // Y margin ticks
         }
         
@@ -119,16 +125,16 @@ public class GraphPanel extends JPanel {
 //Graph Values 
 //******************
         for (int i = 0; i<numPlotPoints-1 ;i++)  {
-            g.drawLine((i * xWidth) + xOrigin,
+            g.drawLine(Math.round(i * xWidth) + xOrigin,
                     (int) Math.round((yEnd-((graphHistory.getBalanceAmount(i)*gScale))+(tMin * gScale))),     // of transaction
-                    (xWidth*(i+1)) + xOrigin,
+                   Math.round(xWidth*(i+1)) + xOrigin,
                     (int) Math.round(yEnd-((graphHistory.getBalanceAmount(i+1)*gScale))+(tMin * gScale)));        //coordinates of next transaction
-            g.drawOval((i * xWidth) + xOrigin - 3, 
+            g.drawOval(Math.round(i * xWidth) + xOrigin - 3, 
                     (int) (Math.round(yEnd-((graphHistory.getBalanceAmount(i)*gScale))+(tMin * gScale))-3),  
                     6,
                     6);      //circles transaction location
         }
-        g.drawOval(((numPlotPoints-1) * xWidth) + xOrigin - 3,               
+        g.drawOval(Math.round((numPlotPoints-1) * xWidth) + xOrigin - 3,               
                     (int) Math.round(yEnd-((graphHistory.getBalanceAmount(numtransactions-1)*gScale))+(tMin * gScale))-3, 
                     6,
                     6);     //circles final transaction
@@ -138,12 +144,12 @@ public class GraphPanel extends JPanel {
 //Axis Labels
 //**************
         for (int i=0 ; i < graphHistory.getNumberOfTransactions() ; i++) {
-            g2D.drawString(String.valueOf(graphHistory.getDate(i)), xOrigin+(xWidth*i)-5, yEnd+fontManager.getHeight()+2);
+            g2D.drawString(String.valueOf(graphHistory.getDate(i)), xOrigin+(xWidth*i)-8, yEnd+fontManager.getHeight()+2);
         }       //Draws the date on X axis
         
         String[] transactString = new String[yAxisPoints+1];
         for (int i = 0; i<=yAxisPoints; i++) {
-            transactString[i] = String.format("%.2f", tMin+((tRange/10)*i));        //breaks down values from Max to Min for graph Y Axis
+            transactString[i] = String.format("%,.2f", tMin+((tRange/10)*i));        //breaks down values from Max to Min for graph Y Axis
         }
         for (int i=0; i<yAxisPoints+1;i++) {
             g2D.drawString(transactString[i],  xOrigin - fontManager.stringWidth(transactString[i]) - 5,  yEnd - ((gRange/yAxisPoints)*i));      //determines where to draw transaction values on the Y Axis

@@ -2,16 +2,24 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-//First frame that you see on screen
+/**
+ * First frame that you see on screen, click a button to choose account type
+ * 
+ * @author Maciej Rozmiarek
+ * @author Declan O'Neill
+ */
 public class UIFrame extends JFrame {
     //constructor
     public UIFrame() {
         
-        
+        // Add buttons,and label.
         this.setLayout(new GridLayout(3,1,0,20));
         JButton buttonCurrentAcc = new JButton("Current Account");
+        buttonCurrentAcc.setFont(new Font(buttonCurrentAcc.getName(),Font.PLAIN, 20));
         JButton buttonSavingsAcc = new JButton("Savings Account");
+        buttonSavingsAcc.setFont(new Font(buttonSavingsAcc.getName(),Font.PLAIN, 20));
         JLabel createJLbl = new JLabel("Choose an Account Type");
+        createJLbl.setFont(new Font(createJLbl.getName(),Font.PLAIN, 30));
         createJLbl.setHorizontalAlignment(JLabel.CENTER);
         add(createJLbl);
         add(buttonCurrentAcc);
@@ -20,7 +28,7 @@ public class UIFrame extends JFrame {
         // Current Acc Action listener
         buttonCurrentAcc.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                 	UIFrame.this.currentAccount();
+                 	UIFrame.this.createCurrentAccount();
                 }
         }       
         );
@@ -28,7 +36,7 @@ public class UIFrame extends JFrame {
         // Savings Acc Action listener
         buttonSavingsAcc.addActionListener(new ActionListener() {
             	public void actionPerformed(ActionEvent e) {
-                    UIFrame.this.savingsAccount();
+                    UIFrame.this.createSavingsAccount();
                 }
         }
         );
@@ -39,54 +47,77 @@ public class UIFrame extends JFrame {
         this.setLocationRelativeTo(null);
         
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-    }
-    
-    protected void savingsAccount() {
-        String strInitDepo = JOptionPane.showInputDialog("Please enter initial deposit to start your account.");
-        double initDepo = Double.parseDouble(strInitDepo);
-        boolean isSavingsAccType = true; 
+    }//End Constructor
+ 
+//Methods
+    protected void createSavingsAccount() {
+        boolean isSavingsAccType = true;         
+        String strInitDepo;
+        try {
+            strInitDepo = JOptionPane.showInputDialog("Please enter initial deposit to start your account.").replace("£", "");//£ symbol ignored
+        } catch (NullPointerException e) {
+            return;
+        }
+        double initDepo;
         
+        //attempt to catch unsuitable number inputs
+        try {
+            initDepo = Double.parseDouble(strInitDepo);
+        } catch (NullPointerException e) {
+            return;
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Initial deposit must be a number.",
+                    "Message", JOptionPane.PLAIN_MESSAGE);
+            return;
+        }
+        
+        //Ensures that initial deposit is not less than the £100.00 minimum for savings accounts.
         if(initDepo < 100) {
-            JOptionPane.showMessageDialog(this, "Unfortunately we can't create the account. The initial balance must be at least £100\n\n" + "Would you like to try a different amount?" ,
+            JOptionPane.showMessageDialog(this, "Unfortunately we can't create the account. The initial balance must be at least £100",
         	"Message", JOptionPane.PLAIN_MESSAGE) ;
-            // ask user whether he wants to try again
-            String yesOrNo = JOptionPane.showInputDialog("Would you like to enter another value? (y/n)");
-            if (yesOrNo.equals("y")) {
-                this.savingsAccount();
-            } 
         } else {
-            JOptionPane.showMessageDialog(this, String.format("Hello,\nYour account balance is £%.2f",initDepo),
+            JOptionPane.showMessageDialog(this, String.format("Hello,\nYour account balance is £%,.2f",initDepo),
         	"Message", JOptionPane.PLAIN_MESSAGE) ;
-            //create new savings account frame
+            //create new frame accountFrame and disposes UIFrame
             AccountFrame savAcc = new AccountFrame(initDepo, isSavingsAccType);
             savAcc.setVisible(true);
-            // make previous frame invisible - imitate closing
-            this.setVisible(false);
+            this.dispose();
         }
     }
     
-    protected void currentAccount() {
-        String strInitDepo = JOptionPane.showInputDialog("Please enter initial deposit to start your account.");
-        double initDepo = Double.parseDouble(strInitDepo);
-        boolean isSavingsAccType = false; 
-        //if deposit is less than £1
+    protected void createCurrentAccount() {
+        boolean isSavingsAccType = false;
+        String strInitDepo;
+        try {
+            strInitDepo = JOptionPane.showInputDialog("Please enter initial deposit to start your account.").replace("£", "");//£ symbol ignored
+        } catch (NullPointerException e) {
+            return;
+        }
+        double initDepo;
+        
+        //attempt to catch unsuitable number inputs
+        try {
+            initDepo = Double.parseDouble(strInitDepo);
+        } catch (NullPointerException e) {
+            return;
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Initial deposit must be a number",
+                    "Message", JOptionPane.PLAIN_MESSAGE);
+            return;
+        }
+        
+        //Ensures initial deposit is not less than £1.00 minimum
         if (initDepo < 1) {
-            JOptionPane.showMessageDialog(this, "Unfortunately we can't create the account. The initial balance must be at least £1\n\n" + "Would you like to try a different amount?" ,
+            JOptionPane.showMessageDialog(this, "Unfortunately we can't create the account. The initial balance must be at least £1" ,
         	"Message", JOptionPane.PLAIN_MESSAGE) ;
-            // ask user whether he wants to continue
-            String yesOrNo = JOptionPane.showInputDialog("Would you like to enter another value? (y/n)");
-            if (yesOrNo.equals("y")) {
-                this.currentAccount();
-            }
-            
         } else {
-            JOptionPane.showMessageDialog(this, String.format("Hello,\nYour account balance is £%.2f",initDepo), 
+            JOptionPane.showMessageDialog(this, String.format("Hello,\nYour account balance is £%,.2f",initDepo), 
                     "Message" , JOptionPane.PLAIN_MESSAGE) ;
-            //create new frame current account
+            //create new frame accountFrame and disposes UIFrame.
             AccountFrame curAcc = new AccountFrame(initDepo, isSavingsAccType);
             curAcc.setVisible(true);
-            //make initial frame invisible - to imitate closing 
-            this.setVisible(false);
+            this.dispose();
         }
     }
-}
+    
+}//End UIFrame
